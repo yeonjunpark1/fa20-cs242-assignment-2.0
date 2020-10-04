@@ -197,6 +197,19 @@ def grab_similar_books(soup, book_dict):
         book_dict['similar_books'] = None
 
 
+def grab_book_isbn(soup, book_dict):
+    """Gets ISBN for book if available. Enters None for value if not available"""
+    try:
+        isbnContainers = soup.find_all('div', class_="clearFloats")
+        isbn = isbnContainers[1].find('div', class_="infoBoxRowItem").text
+        book_dict['ISBN'] = isbn.strip().strip(
+            '\n').replace(" ", '').replace("\n", "")
+    except AttributeError:
+        book_dict['ISBN'] = None
+    except IndexError:
+        book_dict['ISBN'] = None
+
+
 def scrape_book_info(url):
     """
     Scraper for the book information.
@@ -223,6 +236,7 @@ def scrape_book_info(url):
     grab_book_rating(soup, book_dict)
     grab_book_rating_review_count(soup, book_dict)
     grab_book_image_url(soup, book_dict)
+    grab_book_isbn(soup, book_dict)
     all_related_books = grab_similar_books(soup, book_dict)
 
     """Sends the dict object to be converted to a json object"""
@@ -373,12 +387,19 @@ def scrape_author_info(url):
     """Gets the seperate link for the similar authors page"""
     author_meta = author_soup.find(
         'div', class_="hreview-aggregate")  # get author meta data
-    author_related = author_meta.find_all('a')
-    author_related_link = author_related[1].get(
-        'href')  # link to page of related authors
-
-    scrape_similar_authors(author_related_link, author_dict)
-
+    try:
+        author_related = author_meta.find_all('a')
+        author_related_link = author_related[1].get(
+            'href')  # link to page of related authors
+        scrape_similar_authors(author_related_link, author_dict)
+    except IndexError:
+        author_dict['related_authors'] = None
+        author_dict['author_url'] = None
+        author_dict['author_id'] = None
+    except AttributeError:
+        author_dict['related_authors'] = None
+        author_dict['author_url'] = None
+        author_dict['author_id'] = None
     """Send author dict object to be converted into a json object"""
     convert_to_json_author_obj(author_dict)
     return all_author_books

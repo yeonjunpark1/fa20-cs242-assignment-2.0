@@ -50,3 +50,6 @@ All books and authors are distinct and have no repition in the data.
 It will also inform you of when the data is formatted into a json file(s), and when it is transferred over to the data base you provided above.
 <br/>
 <img src="completed.png" />
+
+**Errors**
+If there are any errors during the scrape. You will find in the database, the values will be Null for those specific values.
