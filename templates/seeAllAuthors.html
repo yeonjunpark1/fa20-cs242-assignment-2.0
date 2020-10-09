@@ -1,0 +1,12 @@
+{% extends 'base.html' %} {% block title %} Success!{% endblock %} {% block body
+%}
+<h1>All Books</h1>
+<div>
+  <ol>
+    {% for user in all_authors %}
+    <li>{{user.name}} rating: {{user.rating}}</li>
+    {% endfor %}
+  </ol>
+</div>
+
+{% endblock %}

@@ -3,8 +3,12 @@ block body %}
 <h1>Good Reads API</h1>
 <div class="container">
   <div class="see_all">
-    <h3>See All Books</h3>
-    <h3>Seel All Authors</h3>
+    <div>
+      <a href=" {{ url_for('seeAllBooks') }}">See All Books</a>
+    </div>
+    <div>
+      <a href=" {{ url_for('seeAllAuthors') }}">See All Authors</a>
+    </div>
   </div>
   <div class="get_items">
     <h3>Get Book</h3>
@@ -26,7 +30,7 @@ block body %}
   <div>
     <ol>
       {% for user in all_authors %}
-      <li>{{ user.name }} rating: {{user.rating} }</li>
+      <li>{{ user.name }} rating: {{user.rating}}</li>
       {% endfor %}
     </ol>
   </div>

@@ -26,11 +26,21 @@ mongo = PyMongo(app)
 
 @app.route('/')
 def index():
-    author_entries = mongo.db.Authors
-    all_authors = list(author_entries.find())
+    return render_template('index.html')
+
+
+@app.route('/allBooks')
+def seeAllBooks():
     book_entries = mongo.db.Books
     all_books = list(book_entries.find())
-    return render_template('index.html', all_authors=all_authors, all_books=all_books)
+    return render_template('seeAllBooks.html', all_books=all_books)
+
+
+@app.route('/allAuthors')
+def seeAllAuthors():
+    author_entries = mongo.db.Authors
+    all_authors = list(author_entries.find())
+    return render_template('seeAllAuthors.html', all_authors=all_authors)
 
 
 @app.route('/mongo/books/<string:value>', methods=['GET'])
