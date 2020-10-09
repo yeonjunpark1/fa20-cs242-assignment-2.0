@@ -1,0 +1,41 @@
+{% extends 'base.html' %} {% block title %} Authors and Books {% endblock %} {%
+block body %}
+<h1>Good Reads API</h1>
+<div class="container">
+  <div class="see_all">
+    <h3>See All Books</h3>
+    <h3>Seel All Authors</h3>
+  </div>
+  <div class="get_items">
+    <h3>Get Book</h3>
+
+    <h3>Get Author</h3>
+  </div>
+  <div class="post_items">
+    <h3>Post Book</h3>
+    <h3>Post Author</h3>
+  </div>
+  <div class="update_items">
+    <h3>Update Book</h3>
+    <h3>Update Author</h3>
+  </div>
+  <div class="delete_items">
+    <h3>Delete Book</h3>
+    <h3>Delete Author</h3>
+  </div>
+  <div>
+    <ol>
+      {% for user in all_authors %}
+      <li>{{ user.name }} rating: {{user.rating} }</li>
+      {% endfor %}
+    </ol>
+  </div>
+  <div>
+    <ol>
+      {% for book in all_books %}
+      <li>{{ book.title }} by {{book.author}}</li>
+      {% endfor %}
+    </ol>
+  </div>
+</div>
+{% endblock %}

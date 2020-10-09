@@ -202,8 +202,12 @@ def grab_book_isbn(soup, book_dict):
     try:
         isbnContainers = soup.find_all('div', class_="clearFloats")
         isbn = isbnContainers[1].find('div', class_="infoBoxRowItem").text
-        book_dict['ISBN'] = isbn.strip().strip(
+        temp = isbn.strip().strip(
             '\n').replace(" ", '').replace("\n", "")
+        if temp == 'English' or len(temp) < 10:
+            book_dict['ISBN'] = None
+        else:
+            book_dict['ISBN'] = temp[0:10]
     except AttributeError:
         book_dict['ISBN'] = None
     except IndexError:

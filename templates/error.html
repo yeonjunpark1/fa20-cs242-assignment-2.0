@@ -1,0 +1,9 @@
+{% extends 'base.html' %} {% block title%} Error {% endblock %} {% block body %}
+<h1>Error</h1>
+<h4>{{ message }}</h4>
+<form action="{{ url_for('index')}}">
+  <div>
+    <button class="btn btn-primary">Back to All</button>
+  </div>
+</form>
+{% endblock %}
