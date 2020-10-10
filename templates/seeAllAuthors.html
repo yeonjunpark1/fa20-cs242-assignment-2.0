@@ -7,6 +7,11 @@
     <li>{{user.name}} rating: {{user.rating}}</li>
     {% endfor %}
   </ol>
+  <form action="{{ url_for('index') }}">
+    <div>
+      <button class="btn btn-primary">Back to Main Page</button>
+    </div>
+  </form>
 </div>
 
 {% endblock %}

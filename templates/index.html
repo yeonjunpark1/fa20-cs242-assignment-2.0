@@ -12,11 +12,40 @@ block body %}
   </div>
   <div class="get_items">
     <h3>Get Book</h3>
+    <div>
+      <form action="{{ url_for('get_books_data') }}" method="GET">
+        <textarea name="title" placeholder="Title"></textarea>
+        <input type="submit" />
+      </form>
+      <form action="{{ url_for('get_books_data') }}" method="GET">
+        <textarea name="related_books" placeholder="Related Books"></textarea>
+        <input type="submit" />
+      </form>
+      <form action="{{ url_for('get_books_data') }}" method="GET">
+        <textarea name="author" placeholder="Author Name"></textarea>
+        <input type="submit" />
+      </form>
+    </div>
 
     <h3>Get Author</h3>
+    <div>
+      <form action="{{ url_for('get_author_data') }}" method="GET">
+        <textarea name="name" placeholder="Name"></textarea>
+        <input type="submit" />
+      </form>
+      <form action="{{ url_for('get_author_data') }}" method="GET">
+        <textarea name="booktitle" placeholder="Book Title"></textarea>
+        <input type="submit" />
+      </form>
+    </div>
   </div>
   <div class="post_items">
     <h3>Post Book</h3>
+    <div>
+      <form action="{{ url_for('post_book_data') }}" method="POST">
+        <textarea name="book_url"></textarea>
+      </form>
+    </div>
     <h3>Post Author</h3>
   </div>
   <div class="update_items">
@@ -25,21 +54,17 @@ block body %}
   </div>
   <div class="delete_items">
     <h3>Delete Book</h3>
+    <div>
+      <form action="{{ url_for('delete_book') }}" method="DELETE">
+        <textarea name="title" placeholder="Book Title"></textarea>
+        <input type="submit" />
+      </form>
+      <form action="{{ url_for('delete_book') }}" method="DELETE">
+        <textarea name="ISBN" placeholder="ISBN"></textarea>
+        <input type="submit" />
+      </form>
+    </div>
     <h3>Delete Author</h3>
-  </div>
-  <div>
-    <ol>
-      {% for user in all_authors %}
-      <li>{{ user.name }} rating: {{user.rating}}</li>
-      {% endfor %}
-    </ol>
-  </div>
-  <div>
-    <ol>
-      {% for book in all_books %}
-      <li>{{ book.title }} by {{book.author}}</li>
-      {% endfor %}
-    </ol>
   </div>
 </div>
 {% endblock %}

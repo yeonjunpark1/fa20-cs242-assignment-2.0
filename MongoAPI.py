@@ -33,81 +33,95 @@ def index():
 def seeAllBooks():
     book_entries = mongo.db.Books
     all_books = list(book_entries.find())
-    return render_template('seeAllBooks.html', all_books=all_books)
+    return render_template('seeAllBooks.html', all_books=all_books), 200
 
 
 @app.route('/allAuthors')
 def seeAllAuthors():
     author_entries = mongo.db.Authors
     all_authors = list(author_entries.find())
-    return render_template('seeAllAuthors.html', all_authors=all_authors)
+    return render_template('seeAllAuthors.html', all_authors=all_authors), 200
 
 
-@app.route('/mongo/books/<string:value>', methods=['GET'])
-def get_books_data(value):
+@app.route('/mongo/books', methods=['GET'])
+def get_books_data():
     """Get data for books"""
-    attrib_and_value = value.split("=")
-    attrib_and_value[1] = attrib_and_value[1].strip('"')
-    if len(attrib_and_value) != 2:
-        return render_template('error.html', message='Input format is not correct')
     entry = mongo.db.Authors_and_Books
     output = list()
-
-    if attrib_and_value[0] == 'title':
-        title = entry.find({'title': {'$regex': attrib_and_value[1]}})
+    look_up_type = None
+    if 'title' in request.args:
+        look_up_type = 'title'
+        if len(request.args['title']) <= 2:
+            return render_template('error.html', message="Must enter characters"), 400
+        value = request.args['title'].strip('"')
+        title = entry.find({'title': {'$regex': value}})
         if title:
             for book in title:
                 output.append({'title': book['title']})
-    elif attrib_and_value[0] == 'related_books':
+    elif 'related_books' in request.args:
+        look_up_type = 'similar_books'
+        if len(request.args['related_books']) <= 2:
+            return render_template('error.html', message="Must enter characters"), 400
+        value = request.args['related_books'].strip('"')
         related_books = entry.find(
-            {'similar_books': {'$regex': attrib_and_value[1]}})
+            {'similar_books': {'$regex': value}})
         if related_books:
             for related in related_books:
                 for link in related['similar_books']:
                     if value in link:
                         output.append(({'similar_books': link}))
-    elif attrib_and_value[0] == 'author':
-        author = entry.find({'name': {'$regex': attrib_and_value[1]}})
-        if author:
-            for name in author:
-                output.append({'name': name['name']})
+    elif 'author' in request.args:
+        look_up_type = 'author'
+        if len(request.args['author']) <= 2:
+            return render_template('error.html', message="Must enter characters"), 400
+        value = request.args['author'].strip('"')
+        authors = entry.find({'author': {'$regex': value}})
+        if authors:
+            for name in authors:
+                output.append({'author': name['author']})
 
-    return jsonify({'result': output})
+    return render_template('gottenBooks.html', output=output, look_up_type=look_up_type), 200
 
 
-@app.route('/mongo/authors/<string:value>', methods=['GET'])
-def get_author_data(value):
+@app.route('/mongo/authors', methods=['GET'])
+def get_author_data():
     """Get data for authors"""
-    attrib_and_value = value.split("=")
-    attrib_and_value[1] = attrib_and_value[1].strip('"')
-    if len(attrib_and_value) != 2:
-        return render_template('error.html', message='Input format is not correct')
     entry = mongo.db.Authors_and_Books
     output = list()
+    look_up_type = None
+    if 'name' in request.args:
+        look_up_type = 'name'
+        print(request.args)
+        if len(request.args['name']) <= 2:
 
-    if attrib_and_value[0] == 'name':
-        name = entry.find({'name': {'$regex': attrib_and_value[1]}})
+            return render_template('error.html', message="Must enter characters"), 400
+        value = request.args['name'].strip('"')
+        name = entry.find({'name': {'$regex': value}})
         if name:
             for author in name:
                 output.append({'name': author['name']})
-    elif attrib_and_value[0] == 'booktitle':
+    elif 'booktitle' in request.args:
+        look_up_type = 'related_books'
+        if len(request.args['booktitle']) <= 2:
+            return render_template('error.html', message="Must enter characters"), 400
+        value = request.args['booktitle'].strip('"')
         related_books = entry.find(
-            {'author_books': {'$regex': attrib_and_value[1]}})
+            {'author_books': {'$regex': value}})
         if related_books:
             for related in related_books:
                 for title in related['author_books']:
-                    if attrib_and_value[1] in title:
+                    if value in title:
                         output.append(({'related_books': title}))
 
-    return jsonify({'result': output})
+    return render_template('gottenAuthors.html', output=output, look_up_type=look_up_type), 200
 
 
 @app.route('/mongo/books', methods=['POST'])
-def post__book_data():
+def post_book_data():
     """Post data for books"""
     data = request.get_json()
     if data is None or data == {}:
-        return render_template('error.html', message='Input format is not correct')
+        return render_template('error.html', message='Input format is not correct'), 400
     data.get('book_url', None)
     data.get('title', None)
     data.get('book_id', None)
@@ -124,15 +138,15 @@ def post__book_data():
     else:
         mongo.db.Authors_and_Books.insert_one(data)
 
-    return jsonify({'result': 'Entry has been successfully added'})
+    return jsonify({'result': 'Entry has been successfully added'}), 200
 
 
 @app.route('/mongo/authors', methods=['POST'])
-def post__author_data():
+def post_author_data():
     """Post data for books"""
     data = request.get_json()
     if data is None or data == {}:
-        return render_template('error.html', message='Input format is not correct')
+        return render_template('error.html', message='Input format is not correct'), 400
 
     data.get('name', None)
     data.get('author_url', None)
@@ -149,61 +163,57 @@ def post__author_data():
     else:
         mongo.db.Authors_and_Books.insert_one(data)
 
-    return jsonify({'result': 'Entry has been successfully added'})
+    return jsonify({'result': 'Entry has been successfully added'}), 200
 
 
-@app.route('/mongo/books/<string:value>', methods=['PUT'])
-def update_book(value):
+@app.route('/mongo/books', methods=['PUT'])
+def update_book():
     """Update data for books"""
-    attrib_and_value = value.split("=")
-    attrib_and_value[1] = attrib_and_value[1].strip('"')
-    if len(attrib_and_value) != 2:
-        return render_template('error.html', message='Input format is not correct')
+    key = list(request.args.keys())[0]
+    val = request.args[key].strip('"')
     data = request.get_json()
-    filter = {attrib_and_value[0]: attrib_and_value[1]}
+    filter = {key: val}
+    new_values = {"$set": data}
+    mongo.db.Authors_and_Books.update_one(filter, new_values, upsert=False)
+    return jsonify({'result': "Successfully Updated"}), 200
+
+
+@app.route('/mongo/authors', methods=['PUT'])
+def update_author():
+    """Update data for books"""
+    key = list(request.args.keys())[0]
+    val = request.args[key].strip('"')
+    data = request.get_json()
+    filter = {key: val}
     new_values = {'$set': data}
     mongo.db.Authors_and_Books.update_one(filter, new_values)
-    return jsonify({'result': "Successfully Updated"})
+    return jsonify({'result': "Successfully Updated"}), 200
 
 
-@app.route('/mongo/authors/<string:value>', methods=['PUT'])
-def update_author(value):
-    """Update data for books"""
-    attrib_and_value = value.split("=")
-    attrib_and_value[1] = attrib_and_value[1].strip('"')
-    if len(attrib_and_value) != 2:
-        return render_template('error.html', message='Input format is not correct')
-    data = request.get_json()
-    filter = {attrib_and_value[0]: attrib_and_value[1]}
-    new_values = {'$set': data}
-    mongo.db.Authors_and_Books.update_one(filter, new_values)
-    return jsonify({'result': "Successfully Updated"})
-
-
-@app.route('/mongo/book/<string:value>', methods=['DELETE'])
-def delete_book(value):
+@app.route('/mongo/books', methods=['DELETE'])
+def delete_book():
     """Delete data for books"""
-    attrib_and_value = value.split("=")
-    attrib_and_value[1] = attrib_and_value[1].strip('"')
-    if len(attrib_and_value) != 2:
-        return render_template('error.html', message='Input format is not correct')
+    key = list(request.args.keys())[0]
+    val = request.args[key].strip('"')
     entry = mongo.db.Authors_and_Books
-    elem_to_delete = entry.find_one({attrib_and_value[0]: attrib_and_value[1]})
+    elem_to_delete = entry.find_one({key: val})
+    if elem_to_delete is None:
+        return render_template('error.html', message='No entry was found that matches query'), 400
     mongo.db.Authors_and_Books.delete_one(elem_to_delete)
-    return jsonify({'result': 'Entry has been successfully deleted'})
+    return jsonify({'result': 'Entry has been successfully deleted'}), 200
 
 
-@app.route('/mongo/author/<string:value>', methods=['DELETE'])
-def delete_author(value):
-    """Delete data for books"""
-    attrib_and_value = value.split("=")
-    attrib_and_value[1] = attrib_and_value[1].strip('"')
-    if len(attrib_and_value) != 2:
-        return render_template('error.html', message='Input format is not correct')
+@app.route('/mongo/authors', methods=['DELETE'])
+def delete_author():
+    """Delete data for authors"""
+    key = list(request.args.keys())[0]
+    val = request.args[key].strip('"')
     entry = mongo.db.Authors_and_Books
-    elem_to_delete = entry.find_one({attrib_and_value[0]: attrib_and_value[1]})
+    elem_to_delete = entry.find_one({key: val})
+    if elem_to_delete is None:
+        return render_template('error.html', message='No entry was found that matches query'), 400
     mongo.db.Authors_and_Books.delete_one(elem_to_delete)
-    return jsonify({'result': 'Entry has been successfully deleted'})
+    return jsonify({'result': 'Entry has been successfully deleted'}), 200
 
 
 if __name__ == '__main__':

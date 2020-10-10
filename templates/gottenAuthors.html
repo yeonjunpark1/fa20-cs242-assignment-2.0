@@ -1,9 +1,10 @@
-{% extends 'base.html' %} {% block title %} {% endblock %} {% block body %}
+{% extends 'base.html' %} {% block title %} Success!{% endblock %} {% block body
+%}
 <h1>All Books</h1>
 <div>
   <ol>
-    {% for book in all_books %}
-    <li>{{book.title}} by {{book.author}}</li>
+    {% for elem in output %}
+    <li>{{elem[look_up_type]}}</li>
     {% endfor %}
   </ol>
   <form action="{{ url_for('index') }}">
