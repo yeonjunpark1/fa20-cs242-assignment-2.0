@@ -26,11 +26,13 @@ mongo = PyMongo(app)
 
 @app.route('/')
 def index():
+    """Opens Main Page"""
     return render_template('index.html')
 
 
 @app.route('/allBooks')
 def seeAllBooks():
+    """Returns all Books"""
     book_entries = mongo.db.Books
     all_books = list(book_entries.find())
     return render_template('seeAllBooks.html', all_books=all_books), 200
@@ -38,6 +40,7 @@ def seeAllBooks():
 
 @app.route('/allAuthors')
 def seeAllAuthors():
+    """Return all Authors"""
     author_entries = mongo.db.Authors
     all_authors = list(author_entries.find())
     return render_template('seeAllAuthors.html', all_authors=all_authors), 200
@@ -45,7 +48,9 @@ def seeAllAuthors():
 
 @app.route('/mongo/books', methods=['GET'])
 def get_books_data():
-    """Get data for books"""
+    """Get data for books.
+        Retrieves only the book title for query.
+    """
     entry = mongo.db.Books
     output = list()
     look_up_type = None
@@ -86,7 +91,9 @@ def get_books_data():
 
 @app.route('/mongo/authors', methods=['GET'])
 def get_author_data():
-    """Get data for authors"""
+    """Get data for authors
+        Retrieves only author names for query
+    """
     entry = mongo.db.Authors
     output = list()
     look_up_type = None
@@ -119,7 +126,9 @@ def get_author_data():
 
 @app.route('/mongo/books', methods=['POST'])
 def post_book_data():
-    """Post data for books"""
+    """Post data for books
+        Sets all other values to None if values are not provided
+    """
     data = None
     if request.get_json() is None:
         data = request.form.to_dict()
@@ -150,7 +159,9 @@ def post_book_data():
 
 @app.route('/mongo/authors', methods=['POST'])
 def post_author_data():
-    """Post data for books"""
+    """Post data for authors
+        Sets all other values to None if values are not provided
+    """
     data = None
     if request.get_json() is None:
         data = request.form.to_dict()
@@ -180,7 +191,9 @@ def post_author_data():
 
 @app.route('/mongo/books', methods=['PUT'])
 def update_book():
-    """Update data for books"""
+    """Update data for books
+        When intercepting index error in the except, it means the requst was made in the front end and has to parse to input correctly
+    """
     try:
         key = list(request.args.keys())[0]
         val = request.args[key].strip('"')
@@ -188,15 +201,7 @@ def update_book():
         filter = {key: val}
     except IndexError:
         queryVal = request.form.to_dict()
-        print(queryVal)
-        new_value_key = list(queryVal.keys())[0]
-        change_to_val = queryVal[new_value_key].split('=')
-        change_to_val[0] = change_to_val[0].strip('"')
-        change_to_val[1] = change_to_val[1].strip('"')
-        filt_key = list(queryVal.keys())[1]
-        filter_val = queryVal[filt_key].split('=')
-        filter_val[0] = filter_val[0].strip('"')
-        filter_val[1] = filter_val[1].strip('"')
+        filter_val, change_to_val = parse_filter_newValue(queryVal)
         filter = {filter_val[0]: filter_val[1]}
         data = {change_to_val[0]: change_to_val[1]}
     if all(value == '' for value in data.values()) or all(value == '' for value in filter.values()):
@@ -211,7 +216,9 @@ def update_book():
 
 @app.route('/mongo/authors', methods=['PUT'])
 def update_author():
-    """Update data for books"""
+    """Update data for authors
+        When intercepting index error in the except portion, it means the requst was made in the front end and has to parse to input correctly
+    """
     try:
         key = list(request.args.keys())[0]
         val = request.args[key].strip('"')
@@ -219,15 +226,7 @@ def update_author():
         filter = {key: val}
     except IndexError:
         queryVal = request.form.to_dict()
-        print(queryVal)
-        new_value_key = list(queryVal.keys())[0]
-        change_to_val = queryVal[new_value_key].split('=')
-        change_to_val[0] = change_to_val[0].strip('"')
-        change_to_val[1] = change_to_val[1].strip('"')
-        filt_key = list(queryVal.keys())[1]
-        filter_val = queryVal[filt_key].split('=')
-        filter_val[0] = filter_val[0].strip('"')
-        filter_val[1] = filter_val[1].strip('"')
+        filter_val, change_to_val = parse_filter_newValue(queryVal)
         filter = {filter_val[0]: filter_val[1]}
         print(filter)
         data = {change_to_val[0]: change_to_val[1]}
@@ -237,51 +236,59 @@ def update_author():
     new_values = {'$set': data}
     mongo.db.Authors.update_one(filter, new_values, upsert=False)
     return render_template('updated_author.html', message="Author has been Updated")
-    # return jsonify({'result': "Successfully Updated"}), 200
+
+
+def parse_filter_newValue(queryVal):
+    """Function used to parse the input from the PUT request. 
+        Returns stripped and parsed input from the front-end GUI and sends the filter and new value back to PUT requests.
+    """
+    new_value_key = list(queryVal.keys())[0]
+    change_to_val = queryVal[new_value_key].split('=')
+    change_to_val[0] = change_to_val[0].strip('"')
+    change_to_val[1] = change_to_val[1].strip('"')
+    filt_key = list(queryVal.keys())[1]
+    filter_val = queryVal[filt_key].split('=')
+    filter_val[0] = filter_val[0].strip('"')
+    filter_val[1] = filter_val[1].strip('"')
+    return filter_val, change_to_val
 
 
 @app.route('/mongo/books', methods=['DELETE'])
 def delete_book():
-    """Delete data for books"""
+    """Delete data for books
+        When excepts IndexError, the request is coming from the front end application, and needs to parse and request data differently.
+    """
     try:
         key = list(request.args.keys())[0]
         if key is None:
             return render_template("error.html", message="Please enter a correct key"), 400
         val = request.args[key].strip('"')
-
     except IndexError:
-
         queryVal = request.form.to_dict()
-
         key = list(queryVal.keys())[0]
         val = queryVal[key].strip('"')
-
     entry = mongo.db.Books
     elem_to_delete = entry.find_one({key:  val})
     if elem_to_delete is None:
         return render_template('error.html', message='No entry was found that matches query'), 400
-
     mongo.db.Books.delete_one(elem_to_delete)
     return render_template('deleted_book.html', message="Book Has been Deleted")
 
 
 @app.route('/mongo/authors', methods=['DELETE'])
 def delete_author():
-    """Delete data for authors"""
-
+    """Delete data for authors
+        When excepts IndexError, the request is coming from the front end application, and needs to parse and request data differently.
+    """
     try:
         key = list(request.args.keys())[0]
         val = request.args[key].strip('"')
         if key is None:
             return render_template("error.html", message="Please enter a correct key"), 400
-
     except IndexError:
-
         queryVal = request.form.to_dict()
-        print(queryVal)
         key = list(queryVal.keys())[0]
         val = queryVal[key].strip('"')
-
     entry = mongo.db.Authors
     elem_to_delete = entry.find_one({key: val})
     if elem_to_delete is None:
