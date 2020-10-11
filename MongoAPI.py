@@ -46,7 +46,7 @@ def seeAllAuthors():
 @app.route('/mongo/books', methods=['GET'])
 def get_books_data():
     """Get data for books"""
-    entry = mongo.db.Authors_and_Books
+    entry = mongo.db.Books
     output = list()
     look_up_type = None
     if 'title' in request.args:
@@ -86,7 +86,7 @@ def get_books_data():
 @app.route('/mongo/authors', methods=['GET'])
 def get_author_data():
     """Get data for authors"""
-    entry = mongo.db.Authors_and_Books
+    entry = mongo.db.Authors
     output = list()
     look_up_type = None
     if 'name' in request.args:
@@ -119,7 +119,14 @@ def get_author_data():
 @app.route('/mongo/books', methods=['POST'])
 def post_book_data():
     """Post data for books"""
-    data = request.get_json()
+    data = None
+    if request.get_json() is None:
+        data = request.form.to_dict()
+        print(data)
+    else:
+        data = request.get_json()
+
+    print(request.form['title'])
     if data is None or data == {}:
         return render_template('error.html', message='Input format is not correct'), 400
     data.get('book_url', None)
@@ -134,17 +141,23 @@ def post_book_data():
     data.get('image_url', None)
     data.get('similar_books', None)
     if isinstance(data, list):
-        mongo.db.Authors_and_Books.insert_many(data)
+        mongo.db.Books.insert_many(data)
     else:
-        mongo.db.Authors_and_Books.insert_one(data)
-
-    return jsonify({'result': 'Entry has been successfully added'}), 200
+        mongo.db.Books.insert_one(data)
+    return render_template('post_book.html', data=data), 200
+    # return jsonify({'result': 'Entry has been successfully added'}), 200
 
 
 @app.route('/mongo/authors', methods=['POST'])
 def post_author_data():
     """Post data for books"""
-    data = request.get_json()
+    data = None
+    if request.get_json() is None:
+        data = request.form.to_dict()
+        print(data)
+    else:
+        data = request.get_json()
+
     if data is None or data == {}:
         return render_template('error.html', message='Input format is not correct'), 400
 
@@ -159,9 +172,9 @@ def post_author_data():
     data.get('author_books', None)
 
     if isinstance(data, list):
-        mongo.db.Authors_and_Books.insert_many(data)
+        mongo.db.Authors.insert_many(data)
     else:
-        mongo.db.Authors_and_Books.insert_one(data)
+        mongo.db.Authors.insert_one(data)
 
     return jsonify({'result': 'Entry has been successfully added'}), 200
 
@@ -169,12 +182,27 @@ def post_author_data():
 @app.route('/mongo/books', methods=['PUT'])
 def update_book():
     """Update data for books"""
-    key = list(request.args.keys())[0]
-    val = request.args[key].strip('"')
-    data = request.get_json()
-    filter = {key: val}
+    try:
+        key = list(request.args.keys())[0]
+        val = request.args[key].strip('"')
+        data = request.get_json()
+        filter = {key: val}
+    except IndexError:
+        queryVal = request.form.to_dict()
+        print(queryVal)
+        new_value_key = list(queryVal.keys())[0]
+        change_to_val = queryVal[new_value_key].split('=')
+        change_to_val[0] = change_to_val[0].strip('"')
+        change_to_val[1] = change_to_val[1].strip('"')
+        filt_key = list(queryVal.keys())[1]
+        filter_val = queryVal[filt_key].split('=')
+        filter_val[0] = filter_val[0].strip('"')
+        filter_val[1] = filter_val[1].strip('"')
+        filter = {filter_val[0]: filter_val[1]}
+        data = {change_to_val[0]: change_to_val[1]}
+
     new_values = {"$set": data}
-    mongo.db.Authors_and_Books.update_one(filter, new_values, upsert=False)
+    mongo.db.Books.update_one(filter, new_values, upsert=False)
     return jsonify({'result': "Successfully Updated"}), 200
 
 
@@ -186,33 +214,55 @@ def update_author():
     data = request.get_json()
     filter = {key: val}
     new_values = {'$set': data}
-    mongo.db.Authors_and_Books.update_one(filter, new_values)
+    mongo.db.Authors.update_one(filter, new_values)
     return jsonify({'result': "Successfully Updated"}), 200
 
 
 @app.route('/mongo/books', methods=['DELETE'])
 def delete_book():
     """Delete data for books"""
-    key = list(request.args.keys())[0]
-    val = request.args[key].strip('"')
-    entry = mongo.db.Authors_and_Books
-    elem_to_delete = entry.find_one({key: val})
+    try:
+        key = list(request.args.keys())[0]
+        val = request.args[key].strip('"')
+
+    except IndexError:
+
+        queryVal = request.form.to_dict()
+
+        key = list(queryVal.keys())[0]
+        val = queryVal[key].strip('"')
+
+    entry = mongo.db.Books
+    elem_to_delete = entry.find_one({key:  val})
+
     if elem_to_delete is None:
+
         return render_template('error.html', message='No entry was found that matches query'), 400
-    mongo.db.Authors_and_Books.delete_one(elem_to_delete)
+
+    mongo.db.Books.delete_one(elem_to_delete)
     return jsonify({'result': 'Entry has been successfully deleted'}), 200
 
 
 @app.route('/mongo/authors', methods=['DELETE'])
 def delete_author():
     """Delete data for authors"""
-    key = list(request.args.keys())[0]
-    val = request.args[key].strip('"')
-    entry = mongo.db.Authors_and_Books
+
+    try:
+        key = list(request.args.keys())[0]
+        val = request.args[key].strip('"')
+
+    except IndexError:
+
+        queryVal = request.form.to_dict()
+        print(queryVal)
+        key = list(queryVal.keys())[0]
+        val = queryVal[key].strip('"')
+
+    entry = mongo.db.Authors
     elem_to_delete = entry.find_one({key: val})
     if elem_to_delete is None:
         return render_template('error.html', message='No entry was found that matches query'), 400
-    mongo.db.Authors_and_Books.delete_one(elem_to_delete)
+    mongo.db.Authors.delete_one(elem_to_delete)
     return jsonify({'result': 'Entry has been successfully deleted'}), 200
 
 

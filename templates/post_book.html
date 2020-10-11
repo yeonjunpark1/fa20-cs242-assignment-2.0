@@ -2,13 +2,19 @@
 %}
 <h1>All Books</h1>
 <div>
-  <form action="{{ url_for('post_book_data') }}" method="POST">
-    <input type="hidden" name="Id[]" value="83" />
-    <input type="hidden" name="Id[]" value="85" />
-    <!-- you can add as many as input here for id if you want -->
-    <input type="hidden" name="url" value="http://example.com/" />
-    <input type="submit" value="Submit request" />
-  </form>
+  <ol>
+    <li>URL {{data[book_url]}}</li>
+    <li>Title {{data[title]}}</li>
+    <li>Book ID{{data[book_id]}}</li>
+    <li>ISBN {{data[ISBN]}}</li>
+    <li>Author {{data[author]}}</li>
+    <li>Author Url {{data[author_url]}}</li>
+    <li>Rating {{data[rating]}}</li>
+    <li>Rating Cpunt{{data[rating_count]}}</li>
+    <li>Revice Count{{data[review_count]}}</li>
+    <li>Image Url{{data[image_url]}}</li>
+    <li>Similar Books{{data[similar_books]}}</li>
+  </ol>
   <form action="{{ url_for('index') }}">
     <div>
       <button class="btn btn-primary">Back to Main Page</button>

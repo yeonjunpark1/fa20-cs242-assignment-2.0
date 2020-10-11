@@ -1,5 +1,6 @@
 {% extends 'base.html' %} {% block title %} Authors and Books {% endblock %} {%
 block body %}
+<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
 <h1>Good Reads API</h1>
 <div class="container">
   <div class="see_all">
@@ -14,15 +15,15 @@ block body %}
     <h3>Get Book</h3>
     <div>
       <form action="{{ url_for('get_books_data') }}" method="GET">
-        <textarea name="title" placeholder="Title"></textarea>
+        <input type="text" name="title" placeholder="Title" />
         <input type="submit" />
       </form>
       <form action="{{ url_for('get_books_data') }}" method="GET">
-        <textarea name="related_books" placeholder="Related Books"></textarea>
+        <input type="text" name="related_books" placeholder="Related Books" />
         <input type="submit" />
       </form>
       <form action="{{ url_for('get_books_data') }}" method="GET">
-        <textarea name="author" placeholder="Author Name"></textarea>
+        <input type="text" name="author" placeholder="Author Name" />
         <input type="submit" />
       </form>
     </div>
@@ -30,11 +31,11 @@ block body %}
     <h3>Get Author</h3>
     <div>
       <form action="{{ url_for('get_author_data') }}" method="GET">
-        <textarea name="name" placeholder="Name"></textarea>
+        <input type="text" name="name" placeholder="Name" />
         <input type="submit" />
       </form>
       <form action="{{ url_for('get_author_data') }}" method="GET">
-        <textarea name="booktitle" placeholder="Book Title"></textarea>
+        <input type="text" name="booktitle" placeholder="Book Title" />
         <input type="submit" />
       </form>
     </div>
@@ -43,28 +44,170 @@ block body %}
     <h3>Post Book</h3>
     <div>
       <form action="{{ url_for('post_book_data') }}" method="POST">
-        <textarea name="book_url"></textarea>
+        <input type="text" placeholder="Book Url" name="book_url" />
+        <input type="text" placeholder="Title" name="title" />
+        <input type="text" placeholder="Book ID" name="book_id" />
+        <input type="text" placeholder="ISBN" name="ISBN" />
+        <input type="text" placeholder="Author" name="author" />
+        <input type="text" placeholder="Author URL" name="author_url" />
+        <input type="text" placeholder="Rating" name="rating" />
+        <input type="text" placeholder="Rating Count" name="rating_count" />
+        <input type="text" placeholder="Review Count" name="review_count" />
+        <input type="text" placeholder="Image Url" name="image_url" />
+        <input type="text" placeholder="Similar Books" name="similar_books" />
+        <input type="submit" />
       </form>
     </div>
     <h3>Post Author</h3>
-  </div>
-  <div class="update_items">
-    <h3>Update Book</h3>
-    <h3>Update Author</h3>
-  </div>
-  <div class="delete_items">
-    <h3>Delete Book</h3>
     <div>
-      <form action="{{ url_for('delete_book') }}" method="DELETE">
-        <textarea name="title" placeholder="Book Title"></textarea>
-        <input type="submit" />
-      </form>
-      <form action="{{ url_for('delete_book') }}" method="DELETE">
-        <textarea name="ISBN" placeholder="ISBN"></textarea>
-        <input type="submit" />
-      </form>
+      <div>
+        <form action="{{ url_for('post_author_data') }}" method="POST">
+          <input type="text" placeholder="Author Name" name="name" />
+          <input type="text" placeholder="Author Url" name="author_url" />
+          <input type="text" placeholder="Author ID" name="author_id" />
+          <input type="text" placeholder="Rating" name="rating" />
+          <input type="text" placeholder="Rating Count" name="rating_count" />
+          <input type="text" placeholder="Review Count" name="review_count" />
+          <input type="text" placeholder="Image Url" name="image_url" />
+          <input
+            type="text"
+            placeholder="Related Authors"
+            name="related_authors"
+          />
+          <input type="text" placeholder="Author Books" name="author_books" />
+          <input type="submit" />
+        </form>
+      </div>
     </div>
-    <h3>Delete Author</h3>
+    <div class="update_items">
+      <h3>Update Book</h3>
+      <div>
+        <div class="form-group">
+          <form onsubmit="return update_book_info(event.preventDefault())">
+            <input
+              type="text"
+              class="form-control delete_info"
+              id="filter_info"
+              placeholder="Attr= to filter"
+              style="max-width: 150px"
+              required
+            />
+            <input
+              type="text"
+              class="form-control delete_info"
+              id="update_info"
+              placeholder="Attr= to Change"
+              style="max-width: 150px"
+              required
+            />
+            <input type="submit" />
+          </form>
+        </div>
+
+        <script type="text/javascript">
+          var update_book_info = function () {
+            var query = $('#update_info').val();
+            var filt = $('#filter_info').val();
+            $.ajax({
+              url: '{{url_for("update_book")}}',
+              type: 'PUT',
+
+              data: { queryHere: query, filterHere: filt },
+              success: function (response) {
+                alert('200 Success!');
+              },
+              error: function (response) {
+                alert('400 Bad Request. Entry does not exist.');
+              },
+            });
+          };
+        </script>
+      </div>
+      <h3>Update Author</h3>
+    </div>
+    <div class="delete_items">
+      <h3>Delete Book</h3>
+      <div>
+        <div class="form-group">
+          <form onsubmit="return load_book_info(event.preventDefault())">
+            <label for="delete_info">Delete Book By Info</label>
+            <input
+              type="text"
+              class="form-control delete_info"
+              id="delete_info"
+              placeholder="attr="
+              style="max-width: 150px"
+              required
+            />
+            <input type="submit" />
+          </form>
+        </div>
+
+        <script type="text/javascript">
+          var load_book_info = function () {
+            var query = $('#delete_info').val();
+            var query_arr = query.split('=');
+            var key = '"' + query_arr[0] + '""';
+            var dictOBJ = { key: query_arr[1] };
+            console.log(query_arr);
+            $.ajax({
+              url: '{{url_for("delete_book")}}',
+              type: 'DELETE',
+
+              data: query,
+              success: function (response) {
+                alert('200 Success!');
+              },
+              error: function (response) {
+                alert('400 Bad Request. Entry does not exist.');
+              },
+            });
+          };
+        </script>
+      </div>
+      <h3>Delete Author</h3>
+      <div>
+        <div
+          class="form-group"
+          onsubmit="return load_author_info(event.preventDefault())"
+        >
+          <form>
+            <label for="delete_info">Delete Author By Info</label>
+            <input
+              type="text"
+              class="form-control delete_info"
+              id="delete_author_info"
+              placeholder="attr="
+              style="max-width: 150px"
+              required
+            />
+            <input type="submit" />
+          </form>
+        </div>
+
+        <script type="text/javascript">
+          var load_author_info = function () {
+            var query = $('#delete_author_info').val();
+            var query_arr = query.split('=');
+            var key = '"' + query_arr[0] + '""';
+            var dictOBJ = { key: query_arr[1] };
+            console.log(query_arr);
+            $.ajax({
+              url: '{{url_for("delete_author")}}',
+              type: 'DELETE',
+
+              data: query,
+              success: function (response) {
+                alert('200 Success!');
+              },
+              error: function (response) {
+                alert('400 Bad Request. Entry does not exist.');
+              },
+            });
+          };
+        </script>
+      </div>
+    </div>
   </div>
 </div>
 {% endblock %}
