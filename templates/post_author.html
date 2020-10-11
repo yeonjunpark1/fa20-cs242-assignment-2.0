@@ -1,19 +1,17 @@
 {% extends 'base.html' %} {% block title %} Success!{% endblock %} {% block body
 %}
-<h1>Posted Book</h1>
+<h1>Posted Author</h1>
 <div>
   <ol>
-    <li>URL: {{ output['book_url'] }}</li>
-    <li>Title: {{ output['title'] }}</li>
-    <li>Book ID: {{output['book_id']}}</li>
-    <li>ISBN: {{output['ISBN']}}</li>
-    <li>Author: {{output['author']}}</li>
-    <li>Author Url: {{output['author_url']}}</li>
+    <li>Author Name: {{ output['name'] }}</li>
+    <li>Author Url: {{ output['author_url'] }}</li>
+    <li>Author ID: {{output['author_id']}}</li>
     <li>Rating: {{output['rating']}}</li>
     <li>Rating Count: {{output['rating_count']}}</li>
-    <li>Revice Count: {{output['review_count']}}</li>
+    <li>Review Count: {{output['review_count']}}</li>
     <li>Image Url: {{output['image_url']}}</li>
-    <li>Similar Books: {{output['similar_books']}}</li>
+    <li>Related Authors: {{output['related_authors']}}</li>
+    <li>Author Books: {{output['author_books']}}</li>
   </ol>
   <form action="{{ url_for('index') }}">
     <div>

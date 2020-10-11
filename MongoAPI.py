@@ -79,7 +79,8 @@ def get_books_data():
         if authors:
             for name in authors:
                 output.append({'author': name['author']})
-
+    if len(output) == 0:
+        return render_template('error.html', message="No Entries Found"), 400
     return render_template('gottenBooks.html', output=output, look_up_type=look_up_type), 200
 
 
@@ -93,7 +94,6 @@ def get_author_data():
         look_up_type = 'name'
         print(request.args)
         if len(request.args['name']) <= 2:
-
             return render_template('error.html', message="Must enter characters"), 400
         value = request.args['name'].strip('"')
         name = entry.find({'name': {'$regex': value}})
@@ -112,7 +112,8 @@ def get_author_data():
                 for title in related['author_books']:
                     if value in title:
                         output.append(({'related_books': title}))
-
+    if len(output) == 0:
+        return render_template('error.html', message="No Entries Found"), 400
     return render_template('gottenAuthors.html', output=output, look_up_type=look_up_type), 200
 
 
@@ -126,9 +127,8 @@ def post_book_data():
     else:
         data = request.get_json()
 
-    print(request.form['title'])
-    if data is None or data == {}:
-        return render_template('error.html', message='Input format is not correct'), 400
+    if data is None or data == {} or all(value == '' for value in data.values()):
+        return render_template('error.html', message='Please Enter Information'), 400
     data.get('book_url', None)
     data.get('title', None)
     data.get('book_id', None)
@@ -144,8 +144,8 @@ def post_book_data():
         mongo.db.Books.insert_many(data)
     else:
         mongo.db.Books.insert_one(data)
-    return render_template('post_book.html', data=data), 200
-    # return jsonify({'result': 'Entry has been successfully added'}), 200
+    print(data)
+    return render_template('post_book.html', output=data), 200
 
 
 @app.route('/mongo/authors', methods=['POST'])
@@ -158,7 +158,7 @@ def post_author_data():
     else:
         data = request.get_json()
 
-    if data is None or data == {}:
+    if data is None or data == {} or all(value == '' for value in data.values()):
         return render_template('error.html', message='Input format is not correct'), 400
 
     data.get('name', None)
@@ -175,8 +175,7 @@ def post_author_data():
         mongo.db.Authors.insert_many(data)
     else:
         mongo.db.Authors.insert_one(data)
-
-    return jsonify({'result': 'Entry has been successfully added'}), 200
+    return render_template("post_author.html", output=data), 200
 
 
 @app.route('/mongo/books', methods=['PUT'])
@@ -200,22 +199,45 @@ def update_book():
         filter_val[1] = filter_val[1].strip('"')
         filter = {filter_val[0]: filter_val[1]}
         data = {change_to_val[0]: change_to_val[1]}
-
+    if all(value == '' for value in data.values()) or all(value == '' for value in filter.values()):
+        print('here tho')
+        return render_template('error.html', message="Please enter both fields"), 400
     new_values = {"$set": data}
     mongo.db.Books.update_one(filter, new_values, upsert=False)
-    return jsonify({'result': "Successfully Updated"}), 200
+
+    return render_template("updated_book.html", message="Book Has been updated"), 200
+    # return jsonify({'result': "Successfully Updated"}), 200
 
 
 @app.route('/mongo/authors', methods=['PUT'])
 def update_author():
     """Update data for books"""
-    key = list(request.args.keys())[0]
-    val = request.args[key].strip('"')
-    data = request.get_json()
-    filter = {key: val}
+    try:
+        key = list(request.args.keys())[0]
+        val = request.args[key].strip('"')
+        data = request.get_json()
+        filter = {key: val}
+    except IndexError:
+        queryVal = request.form.to_dict()
+        print(queryVal)
+        new_value_key = list(queryVal.keys())[0]
+        change_to_val = queryVal[new_value_key].split('=')
+        change_to_val[0] = change_to_val[0].strip('"')
+        change_to_val[1] = change_to_val[1].strip('"')
+        filt_key = list(queryVal.keys())[1]
+        filter_val = queryVal[filt_key].split('=')
+        filter_val[0] = filter_val[0].strip('"')
+        filter_val[1] = filter_val[1].strip('"')
+        filter = {filter_val[0]: filter_val[1]}
+        print(filter)
+        data = {change_to_val[0]: change_to_val[1]}
+        print(data)
+    if all(value == '' for value in data.values()) or all(value == '' for value in filter.values()):
+        return render_template('error.html', message="Please enter both fields"), 400
     new_values = {'$set': data}
-    mongo.db.Authors.update_one(filter, new_values)
-    return jsonify({'result': "Successfully Updated"}), 200
+    mongo.db.Authors.update_one(filter, new_values, upsert=False)
+    return render_template('updated_author.html', message="Author has been Updated")
+    # return jsonify({'result': "Successfully Updated"}), 200
 
 
 @app.route('/mongo/books', methods=['DELETE'])
@@ -223,6 +245,8 @@ def delete_book():
     """Delete data for books"""
     try:
         key = list(request.args.keys())[0]
+        if key is None:
+            return render_template("error.html", message="Please enter a correct key"), 400
         val = request.args[key].strip('"')
 
     except IndexError:
@@ -234,13 +258,11 @@ def delete_book():
 
     entry = mongo.db.Books
     elem_to_delete = entry.find_one({key:  val})
-
     if elem_to_delete is None:
-
         return render_template('error.html', message='No entry was found that matches query'), 400
 
     mongo.db.Books.delete_one(elem_to_delete)
-    return jsonify({'result': 'Entry has been successfully deleted'}), 200
+    return render_template('deleted_book.html', message="Book Has been Deleted")
 
 
 @app.route('/mongo/authors', methods=['DELETE'])
@@ -250,6 +272,8 @@ def delete_author():
     try:
         key = list(request.args.keys())[0]
         val = request.args[key].strip('"')
+        if key is None:
+            return render_template("error.html", message="Please enter a correct key"), 400
 
     except IndexError:
 
@@ -263,7 +287,8 @@ def delete_author():
     if elem_to_delete is None:
         return render_template('error.html', message='No entry was found that matches query'), 400
     mongo.db.Authors.delete_one(elem_to_delete)
-    return jsonify({'result': 'Entry has been successfully deleted'}), 200
+    return render_template('deleted_author.html', message="Author Has been Deleted")
+    # return jsonify({'result': 'Entry has been successfully deleted'}), 200
 
 
 if __name__ == '__main__':

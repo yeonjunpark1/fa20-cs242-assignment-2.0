@@ -124,6 +124,48 @@ block body %}
         </script>
       </div>
       <h3>Update Author</h3>
+      <div>
+        <div class="form-group">
+          <form onsubmit="return update_author_info(event.preventDefault())">
+            <input
+              type="text"
+              class="form-control delete_info"
+              id="filter__auth_info"
+              placeholder="Attr= to filter"
+              style="max-width: 150px"
+              required
+            />
+            <input
+              type="text"
+              class="form-control delete_info"
+              id="update_auth_info"
+              placeholder="Attr= to Change"
+              style="max-width: 150px"
+              required
+            />
+            <input type="submit" />
+          </form>
+        </div>
+
+        <script type="text/javascript">
+          var update_author_info = function () {
+            var query = $('#update_auth_info').val();
+            var filt = $('#filter__auth_info').val();
+            $.ajax({
+              url: '{{url_for("update_author")}}',
+              type: 'PUT',
+
+              data: { queryHere: query, filterHere: filt },
+              success: function (response) {
+                alert('200 Success!');
+              },
+              error: function (response) {
+                alert('400 Bad Request. Entry does not exist.');
+              },
+            });
+          };
+        </script>
+      </div>
     </div>
     <div class="delete_items">
       <h3>Delete Book</h3>

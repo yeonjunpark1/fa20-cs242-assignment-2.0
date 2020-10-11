@@ -53,3 +53,75 @@ It will also inform you of when the data is formatted into a json file(s), and w
 
 **Errors**
 If there are any errors during the scrape. You will find in the database, the values will be Null for those specific values.
+
+**Front End API GUI**<br/>
+<br/>
+**Set UP**
+
+```python
+pip install flask
+```
+
+```python
+pip install pymongo
+```
+
+```python
+pip install flask_pymongo
+```
+
+<br>
+Run by using
+
+```python
+python MongoAPI.py
+```
+
+<br>
+
+**Testing** <br>
+PostMan v7.34
+
+**View** <br>
+When you run the application, you will be shown a link to a local host, where the GUI is currently running.
+You will be greeted with this page when you click on the link.
+<img src="index page.png" />
+
+**See all Book and Authors**<br>
+When you click on these links you will see all the books and authors currently in the database. There is a button on the bottom of the page to redirect you to the main page.
+After any update, delete, or insert into the data base, you will be able to see them here.
+<img src="AllBooks.png">
+
+**Get Book and Author**<br>
+You can query for a book or Author by inserting text into the fields.
+When you send a query you will see a list of books and their authors or authors and their ratings as such.
+<img src="queriedBooks.png">
+
+<img src="queriedAuthors.png">
+You may only choose one field and it must be longer than 2 characters long, or else you will redirected to an error page. You will also be redirected to the error page if there are no matching queries.
+Clicking on the "Back to Main Page" will redirect you to the home page.
+<img src="Error.png">
+
+**Post Author and Book**
+The database hold a couple fields for a book and author entry. There is a placeholder for the entry fields that you may choose to enter. If you do not enter all fields, the empty fields will just remain empty for the data entry.
+<img src="PostedBook.png">
+<img src="postedAuthor.png">
+After putting in an entry for a book or a author. You will be able to review you entry and return to the main page.
+
+**Update Autor and Book**
+You also have the capability to update fields within a data entry. For example, if you wanted to change the name of a book, you can do it as such.
+You must enter a attribute followed by the value, as such, title=test. There must be no spaces in between.
+<img src="updateBook.png">
+The first field is the filter used to find the data entry to want to update. The second field is the field you want to change in that entry.
+If a success you will be prompted as such.
+<img src= "updatebooksuccess.png">
+You will also be required to fill out both fields, if you do not, you will be prompted as such,
+<img src="RequiredField.png">
+
+**Delete Author and Book**
+To Delete a book it is similar to the update funcitonality.
+You must enter a attribute followed by the value, as such, title=test. There must be no spaces in between.
+When the request succeeds, you will see,
+<img src="delete_success.png">
+If you try and delete an entry that does not exist, you will see,
+<img src="delete_badrequest.png">
